@@ -1,18 +1,7 @@
-(local player {"w" 10 "h" 11 "x" 300 "y" 300 "speed" 100 "anims" {}})
+(local anim8 (require "lib.anim8"))
 
-(fn make-anim [image width height duration]
-  (let [anim {"spritesheet" image "curr-time" 0 "quads" {} "sprite-num" 1}]
-    (for [y 0 (- (image:getHeight) height) height]
-      (for [x 0 (- (image:getWidth) width) width]
-        (table.insert anim.quads (love.graphics.newQuad x y width height (image:getDimensions)))))
-    (tset anim "duration" (or duration 1))
-    anim))
-
-(fn update-anim [anim dt]
-  (tset anim "curr-time" (+ anim.curr-time dt))
-  (if (>= anim.curr-time anim.duration)
-      (tset anim "curr-time" (- anim.curr-time anim.duration)))
-  (tset anim "sprite-num" (+ (math.floor (* (/ anim.curr-time anim.duration) (length anim.quads))) 1)))
+(local player {"w" 69 "h" 71 "x" 300 "y" 300 "speed" 100 "anims" {}})
+(var spritesheet nil)
 
 (fn update-player [player dt]
   (if (love.keyboard.isDown "a")
@@ -23,17 +12,20 @@
         (tset player "x" (+ player.x (* player.speed dt))))
       (love.keyboard.isDown "w")
       (when (> player.y 0)
-        (tset player "y" (- player.y (* player.speed dt)))
-        (update-anim player.anim dt))
+        (tset player "y" (- player.y (* player.speed dt))))
       (love.keyboard.isDown "s")
       (when (< player.y (- (love.graphics.getHeight) player.h))
-        (tset player "y" (+ player.y (* player.speed dt))))))
+        (tset player "y" (+ player.y (* player.speed dt)))))
+
+  (player.anim:update dt))
 
 (fn draw-player [player]
-  (love.graphics.draw player.anim.spritesheet (. player.anim.quads player.anim.sprite-num) player.x player.y))
+  (player.anim:draw spritesheet player.x player.y))
 
 (fn love.load []
-  (tset player.anims "run-forward" (make-anim (love.graphics.newImage "assets/player-run-forward.png") player.w player.h 1))
+  (set spritesheet (love.graphics.newImage "assets/spritesheet.png"))
+  (let [anim-grid (anim8.newGrid player.w player.h (spritesheet:getWidth) (spritesheet:getHeight) 0 0 1)]
+    (tset player.anims "run-forward" (anim8.newAnimation (anim-grid "2-5" 1) 0.2)))
   (tset player "anim" player.anims.run-forward))
 
 (fn love.update [dt]
