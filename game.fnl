@@ -48,4 +48,5 @@
   (update-player player dt))
 
 (fn love.draw []
+  (love.graphics.setBackgroundColor 1 1 1 0)
   (draw-player player))
