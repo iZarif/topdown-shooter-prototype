@@ -1,7 +1,16 @@
 (local anim8 (require "lib.anim8"))
 
-(local player {"w" 69 "h" 71 "x" 300 "y" 300 "speed" 100 "anims" {} "facing" "forward"})
 (var spritesheet nil)
+(var player nil)
+
+(fn make-player []
+  (let [player {"w" 69 "h" 71 "x" 300 "y" 300 "speed" 100 "anims" {} "facing" "forward"}
+        anim-grid (anim8.newGrid player.w player.h (spritesheet:getWidth) (spritesheet:getHeight) 0 0 1)]
+    (tset player.anims "stand-forward" (anim8.newAnimation (anim-grid 1 1) 1))
+    (tset player.anims "stand-backward" (player.anims.stand-forward.flipV (player.anims.stand-forward:clone)))
+    (tset player.anims "run-forward" (anim8.newAnimation (anim-grid "2-5" 1) 0.2))
+    (tset player "anim" player.anims.stand-forward)
+    player))
 
 (fn update-player [player dt]
     (if (= player.facing "forward")
@@ -37,12 +46,7 @@
 
 (fn love.load []
   (set spritesheet (love.graphics.newImage "assets/spritesheet.png"))
-  (let [anim-grid (anim8.newGrid player.w player.h (spritesheet:getWidth) (spritesheet:getHeight) 0 0 1)]
-    (tset player.anims "stand-forward" (anim8.newAnimation (anim-grid 1 1) 1))
-    (tset player.anims "stand-backward" (player.anims.stand-forward:clone))
-    (tset player.anims "stand-backward" (player.anims.stand-backward:flipV))
-    (tset player.anims "run-forward" (anim8.newAnimation (anim-grid "2-5" 1) 0.2)))
-  (tset player "anim" player.anims.stand-forward))
+  (set player (make-player)))
 
 (fn love.update [dt]
   (update-player player dt))
